@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Disease Prediction and Doctor Recommendation System</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 85%;
+            margin: 30px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0px 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: #2c3e50;
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .header p {
+            margin-top: 8px;
+            font-size: 18px;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        .note {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .symptom-box {
+            height: 350px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 15px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        label {
+            display: block;
+            padding: 4px;
+            font-size: 15px;
+        }
+
+        button {
+            background: #28a745;
+            color: white;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 17px;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+
+        #result {
+            margin-top: 25px;
+            padding: 18px;
+            background: #eef7ff;
+            border-left: 6px solid #007bff;
+            border-radius: 6px;
+            font-size: 18px;
+            min-height: 40px;
+        }
+
+        .logout {
+            display: inline-block;
+            margin-top: 20px;
+            color: #dc3545;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .logout:hover {
+            text-decoration: underline;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>🩺 Disease Prediction & Doctor Recommendation System</h1>
+        <p>Welcome, {{ user }}</p>
+    </div>
+
+    <h2>Select Symptoms</h2>
+    <p class="note">
+        Please select <b>minimum 3 symptoms</b> and <b>maximum 10 symptoms</b>.
+    </p>
+
+    <div class="symptom-box" id="symptoms">
+        {% for symptom in symptoms %}
+            <label>
+                <input type="checkbox" value="{{ symptom }}">
+                {{ symptom }}
+            </label>
+        {% endfor %}
+    </div>
+
+    <button onclick="predict()">Predict Disease</button>
+
+    <div id="result"></div>
+
+    <a href="/logout" class="logout">Logout</a>
+
+    <div class="footer">
+        © 2026 Health AI Project
+    </div>
+
+</div>
+
+<script>
+let allSymptoms = {{ symptoms | tojson }};
+
+function predict() {
+    let selected = [];
+
+    let checkboxes = document.querySelectorAll('#symptoms input[type=checkbox]');
+
+    checkboxes.forEach(cb => {
+        if (cb.checked) {
+            selected.push(cb.value);
+        }
+    });
+
+    // Minimum 3 symptoms
+    if (selected.length < 3) {
+        document.getElementById("result").innerHTML =
+            "<span style='color:red; font-weight:bold;'>Please select at least 3 symptoms.</span>";
+        return;
+    }
+
+    // Maximum 10 symptoms
+    if (selected.length > 10) {
+        document.getElementById("result").innerHTML =
+            "<span style='color:red; font-weight:bold;'>Please select at most 10 symptoms.</span>";
+        return;
+    }
+
+    let data = allSymptoms.map(symptom =>
+        selected.includes(symptom) ? 1 : 0
+    );
+
+    fetch("/predict", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            symptoms: data
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            document.getElementById("result").innerHTML =
+                "<span style='color:red; font-weight:bold;'>" + data.error + "</span>";
+        } else {
+            document.getElementById("result").innerHTML =
+                "<b>Predicted Disease:</b> " + data.disease +
+                "<br><br>" +
+                "<b>Recommended Doctor:</b> " + data.doctor;
+        }
+    })
+    .catch(err => {
+        document.getElementById("result").innerHTML =
+            "<span style='color:red; font-weight:bold;'>Prediction failed. Try again.</span>";
+    });
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Disease Prediction System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>Intelligent Disease Prediction System</h1>
+        <p>Symptom-based disease prediction using Machine Learning</p>
+    </div>
+
+    <form method="POST">
+
+        <div class="symptoms-title">Select Your Symptoms</div>
+
+        <div class="symptoms-box">
+            {% for symptom in symptoms %}
+            <div class="symptom-item">
+                <input type="checkbox" name="symptoms" value="{{ symptom }}">
+                {{ symptom.replace("_"," ").title() }}
+            </div>
+            {% endfor %}
+        </div>
+
+        <button type="submit">🔍 Predict Disease</button>
+    </form>
+
+    {% if disease %}
+    <div class="result">
+        <h2>🦠 Predicted Disease: {{ disease }}</h2>
+        <h3>👨‍⚕️ Recommended Doctor: {{ doctor }}</h3>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        © 2026 Intelligent Healthcare ML Project
+    </div>
+
+</div>
+
+</body>
+</html>
